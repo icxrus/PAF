@@ -94,7 +94,7 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.lockState = CursorLockMode.Locked; //Move to game controller when pause and saving implemented
 
         animator.runtimeAnimatorController = baseController;
         groundedPlayer = true;
@@ -116,10 +116,10 @@ public class PlayerController : MonoBehaviour
             playerVelocity.y = 0f;
         }*/
 
-        runAction.performed += _ => runHoldDown = true;
+        runAction.performed += _ => runHoldDown = true; //Checking for holding down sprint button
         runAction.canceled += _ => runHoldDown = false;
 
-        crouchAction.performed += _ => crouchHoldDown = true;
+        crouchAction.performed += _ => crouchHoldDown = true; //Checking for holding down crouch button
         crouchAction.canceled += _ => crouchHoldDown = false;
 
         //Lock run and crouch depending on current action
@@ -266,15 +266,25 @@ public class PlayerController : MonoBehaviour
         transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
     }
 
-    private void StartAttack()
+    private void StartAttack() //Basic attack control
     {
         animator.runtimeAnimatorController = baseController;
         animator.Play("Greatstaff Attack");
-        Vector3 spawnPosition = Camera.main.ViewportToWorldPoint(new Vector3(0f, 0f, 3f));
-
-        Instantiate(projectile.prefab, spawnPosition, Quaternion.Euler(0, cameraTransform.eulerAngles.y, 0));
+        var ray = Camera.main.ScreenPointToRay(new Vector2(Screen.height / 2, Screen.width / 2));
+        RaycastHit hitPoint;
+        Vector3 spawnPosition;
+        if (Physics.Raycast(ray, out hitPoint, 100f)) // check hit
+        {
+            Debug.DrawRay(ray.direction, hitPoint.transform.position);
+            if(hitPoint.transform.CompareTag("Enemy"))
+            {
+                // do damge to enemy
+            }
+        }
+        spawnPosition = ray.direction + cameraTransform.position;
+        Instantiate(projectile.prefab, spawnPosition, Quaternion.Euler(cameraTransform.eulerAngles.x, 0, cameraTransform.eulerAngles.z));
         
 
     }
 
-}
+} //Large amount of code by Samyam tutorials on YouTube - but appended for current projects needs
