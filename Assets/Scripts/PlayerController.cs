@@ -69,6 +69,7 @@ public class PlayerController : MonoBehaviour
     Vector2 animationVelocity;
 
     public ParticleObjectData projectile;
+    public float distance;
 
     private void Awake()
     {
@@ -111,10 +112,11 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        /*if (groundedPlayer && playerVelocity.y < 0)
+        if (groundedPlayer && playerVelocity.y < 0)
         {
             playerVelocity.y = 0f;
-        }*/
+        }
+        GroundCheck();
 
         runAction.performed += _ => runHoldDown = true; //Checking for holding down sprint button
         runAction.canceled += _ => runHoldDown = false;
@@ -211,7 +213,7 @@ public class PlayerController : MonoBehaviour
             currentAnimationBlendVector.y = 1;
             move = new(currentAnimationBlendVector.x, 0, currentAnimationBlendVector.y);
             move = move.x * cameraTransform.right.normalized + move.z * cameraTransform.forward.normalized;
-            move.y = -1f;
+            move.y = 0f;
             controller.Move(playerSpeed * Time.deltaTime * move);
             animator.runtimeAnimatorController = runController;
             animator.SetFloat(speedXAnimationParameterID, currentAnimationBlendVector.x);
@@ -221,7 +223,7 @@ public class PlayerController : MonoBehaviour
         {
             move = new(currentAnimationBlendVector.x, 0, currentAnimationBlendVector.y);
             move = move.x * cameraTransform.right.normalized + move.z * cameraTransform.forward.normalized;
-            move.y = -1f;
+            move.y = 0f;
 
             controller.Move(playerSpeed * Time.deltaTime * move);
 
@@ -242,14 +244,15 @@ public class PlayerController : MonoBehaviour
             {
                 animator.Play(jumpAnimation);
             }
-            
         }
 
         //Jump Control
         playerVelocity.y += gravityValue * Time.deltaTime;
         controller.Move(playerVelocity * Time.deltaTime);
 
-        groundedPlayer = controller.isGrounded;
+        //groundedPlayer = controller.isGrounded;
+        
+
         if (groundedPlayer)
         {
             animator.SetBool("InAir", false);
@@ -285,6 +288,33 @@ public class PlayerController : MonoBehaviour
         Instantiate(projectile.prefab, spawnPosition, Quaternion.Euler(cameraTransform.eulerAngles.x, 0, cameraTransform.eulerAngles.z));
         
 
+    }
+
+    void GroundCheck()
+    {
+        RaycastHit hit;
+        
+        Vector3 dir = new Vector3(0, -1);
+
+        if (Physics.Raycast(transform.position, dir, out hit, distance))
+        {
+            groundedPlayer = true;
+        }
+        else
+        {
+            groundedPlayer = false;
+        }
+        Debug.DrawRay(transform.position, dir * distance, Color.red);
+    }
+
+    public void CallOnCollisionsWithGround()
+    {
+        groundedPlayer = true;
+    }
+
+    public void CallOnCollisionExitWithGround()
+    {
+        groundedPlayer = false;
     }
 
 } //Large amount of code by Samyam tutorials on YouTube - but appended for current projects needs
