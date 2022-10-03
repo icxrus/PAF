@@ -29,7 +29,7 @@ public class PlayerController : MonoBehaviour
     private bool CanRun = true;
     [SerializeField]
     private bool CanCrouch = true;
-    private bool locked = false;
+    public bool locked = false;
     [SerializeField]
     private bool autoRunning = false;
 
@@ -112,161 +112,170 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (groundedPlayer && playerVelocity.y < 0)
+        if (!locked)
         {
-            playerVelocity.y = 0f;
-        }
-        GroundCheck();
-
-        runAction.performed += _ => runHoldDown = true; //Checking for holding down sprint button
-        runAction.canceled += _ => runHoldDown = false;
-
-        crouchAction.performed += _ => crouchHoldDown = true; //Checking for holding down crouch button
-        crouchAction.canceled += _ => crouchHoldDown = false;
-
-        //Lock run and crouch depending on current action
-        if (CanRun)
-        {
-            if (runHoldDown)
+            if (groundedPlayer && playerVelocity.y < 0)
             {
-                animator.runtimeAnimatorController = runController;
-                if (attackAction.triggered)
-                {
-                    StartAttack();
-                }
-                else
-                {
-                    playerSpeed = runSpeed;
-                    CanCrouch = false;
-                }
-                
+                playerVelocity.y = 0f;
             }
-            else if (!runHoldDown)
-            {
-                if (!crouchHoldDown)
-                {
-                    animator.runtimeAnimatorController = baseController;
-                }
+            GroundCheck();
 
-                if (attackAction.triggered)
+            runAction.performed += _ => runHoldDown = true; //Checking for holding down sprint button
+            runAction.canceled += _ => runHoldDown = false;
+
+            crouchAction.performed += _ => crouchHoldDown = true; //Checking for holding down crouch button
+            crouchAction.canceled += _ => crouchHoldDown = false;
+
+            //Lock run and crouch depending on current action
+            if (CanRun)
+            {
+                if (runHoldDown)
                 {
-                    StartAttack();
+                    animator.runtimeAnimatorController = runController;
+                    if (attackAction.triggered)
+                    {
+                        StartAttack();
+                    }
+                    else
+                    {
+                        playerSpeed = runSpeed;
+                        CanCrouch = false;
+                    }
+
                 }
-                else
+                else if (!runHoldDown)
                 {
+                    if (!crouchHoldDown)
+                    {
+                        animator.runtimeAnimatorController = baseController;
+                    }
+
+                    if (attackAction.triggered)
+                    {
+                        StartAttack();
+                    }
+                    else
+                    {
+                        playerSpeed = walkSpeed;
+                        CanCrouch = true;
+                    }
+                }
+            }
+            if (CanCrouch)
+            {
+                if (crouchHoldDown)
+                {
+                    animator.runtimeAnimatorController = crouchController;
+                    if (attackAction.triggered)
+                    {
+                        StartAttack();
+                    }
+                    else
+                    {
+                        playerSpeed = crouchSpeed;
+                        CanRun = false;
+                    }
+                }
+                else if (!crouchHoldDown)
+                {
+                    if (!runHoldDown)
+                    {
+                        animator.runtimeAnimatorController = baseController;
+                    }
+
+                    if (attackAction.triggered)
+                    {
+                        StartAttack();
+                    }
+                    else
+                    {
+                        playerSpeed = walkSpeed;
+                        CanRun = true;
+                    }
+                }
+            }
+
+            Vector2 input = moveAction.ReadValue<Vector2>();
+            currentAnimationBlendVector = Vector2.SmoothDamp(currentAnimationBlendVector, input, ref animationVelocity, animationSmoothTime);
+            Vector3 _lastInput = input;
+            Vector3 move = new();
+            if (autoRunAction.WasPressedThisFrame() || autoRunning) //Check if we should start autorunning or if autorun is already on
+            {
+                if (!_lastInput.Equals(Vector2.zero)) //If we are running check for move buttons to be pressed to stop running
+                {
+                    autoRunning = false;
                     playerSpeed = walkSpeed;
-                    CanCrouch = true;
                 }
-            }
-        }
-        if (CanCrouch)
-        {
-            if (crouchHoldDown)
-            {
-                animator.runtimeAnimatorController = crouchController;
-                if (attackAction.triggered)
+                else //Otherwise we keep running
                 {
-                    StartAttack();
+                    autoRunning = true;
                 }
-                else
-                {
-                    playerSpeed = crouchSpeed;
-                    CanRun = false;
-                }
+                playerSpeed = runSpeed;
+                currentAnimationBlendVector.x = 0;
+                currentAnimationBlendVector.y = 1;
+                move = new(currentAnimationBlendVector.x, 0, currentAnimationBlendVector.y);
+                move = move.x * cameraTransform.right.normalized + move.z * cameraTransform.forward.normalized;
+                move.y = 0f;
+                controller.Move(playerSpeed * Time.deltaTime * move);
+                animator.runtimeAnimatorController = runController;
+                animator.SetFloat(speedXAnimationParameterID, currentAnimationBlendVector.x);
+                animator.SetFloat(speedYAnimationParameterID, currentAnimationBlendVector.y);
             }
-            else if (!crouchHoldDown)
+            else if (!autoRunAction.WasPressedThisFrame() && !autoRunning) //If we are not autorunning, we should use input to move character
             {
+                move = new(currentAnimationBlendVector.x, 0, currentAnimationBlendVector.y);
+                move = move.x * cameraTransform.right.normalized + move.z * cameraTransform.forward.normalized;
+                move.y = 0f;
+
+                controller.Move(playerSpeed * Time.deltaTime * move);
+
+                animator.SetFloat(speedXAnimationParameterID, currentAnimationBlendVector.x);
+                animator.SetFloat(speedYAnimationParameterID, currentAnimationBlendVector.y);
+            }
+
+            // Changes the height position of the player (jump)
+            if (jumpAction.triggered && groundedPlayer)
+            {
+                move.y = 0f;
+                playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
                 if (!runHoldDown)
                 {
-                    animator.runtimeAnimatorController = baseController;
-                }
-
-                if (attackAction.triggered)
-                {
-                    StartAttack();
+                    animator.Play(jumpAnimation);
                 }
                 else
                 {
-                    playerSpeed = walkSpeed;
-                    CanRun = true;
+                    animator.Play(jumpAnimation);
                 }
             }
-        }
-        
-        Vector2 input = moveAction.ReadValue<Vector2>();
-        currentAnimationBlendVector = Vector2.SmoothDamp(currentAnimationBlendVector, input, ref animationVelocity, animationSmoothTime);
-        Vector3 _lastInput = input;
-        Vector3 move = new();
-        if (autoRunAction.WasPressedThisFrame() || autoRunning) //Check if we should start autorunning or if autorun is already on
-        {
-            if (!_lastInput.Equals(Vector2.zero)) //If we are running check for move buttons to be pressed to stop running
-            {
-                autoRunning = false;
-                playerSpeed = walkSpeed;
-            }
-            else //Otherwise we keep running
-            {
-                autoRunning = true;
-            }
-            playerSpeed = runSpeed;
-            currentAnimationBlendVector.x = 0;
-            currentAnimationBlendVector.y = 1;
-            move = new(currentAnimationBlendVector.x, 0, currentAnimationBlendVector.y);
-            move = move.x * cameraTransform.right.normalized + move.z * cameraTransform.forward.normalized;
-            move.y = 0f;
-            controller.Move(playerSpeed * Time.deltaTime * move);
-            animator.runtimeAnimatorController = runController;
-            animator.SetFloat(speedXAnimationParameterID, currentAnimationBlendVector.x);
-            animator.SetFloat(speedYAnimationParameterID, currentAnimationBlendVector.y);
-        }
-        else if (!autoRunAction.WasPressedThisFrame() && !autoRunning) //If we are not autorunning, we should use input to move character
-        {
-            move = new(currentAnimationBlendVector.x, 0, currentAnimationBlendVector.y);
-            move = move.x * cameraTransform.right.normalized + move.z * cameraTransform.forward.normalized;
-            move.y = 0f;
 
-            controller.Move(playerSpeed * Time.deltaTime * move);
+            //Jump Control
+            playerVelocity.y += gravityValue * Time.deltaTime;
+            controller.Move(playerVelocity * Time.deltaTime);
 
-            animator.SetFloat(speedXAnimationParameterID, currentAnimationBlendVector.x);
-            animator.SetFloat(speedYAnimationParameterID, currentAnimationBlendVector.y);
-        }
+            //groundedPlayer = controller.isGrounded;
 
-        // Changes the height position of the player (jump)
-        if (jumpAction.triggered && groundedPlayer)
-        {
-            move.y = 0f;
-            playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
-            if (!runHoldDown)
+
+            if (groundedPlayer)
             {
-                animator.Play(jumpAnimation);
+                animator.SetBool("InAir", false);
             }
             else
             {
-                animator.Play(jumpAnimation);
+                animator.SetBool("InAir", true);
             }
-        }
 
-        //Jump Control
-        playerVelocity.y += gravityValue * Time.deltaTime;
-        controller.Move(playerVelocity * Time.deltaTime);
-
-        //groundedPlayer = controller.isGrounded;
-        
-
-        if (groundedPlayer)
-        {
-            animator.SetBool("InAir", false);
+            // Rotate towards camera direction when moving
+            if (_lastInput.sqrMagnitude == 0) return;
+            float targetAngle = cameraTransform.eulerAngles.y;
+            Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
+            transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
         else
         {
-            animator.SetBool("InAir", true);
+            animator.SetFloat(speedXAnimationParameterID, 0);
+            animator.SetFloat(speedYAnimationParameterID, 0);
         }
-
-        // Rotate towards camera direction when moving
-        if (_lastInput.sqrMagnitude == 0) return;
-        float targetAngle = cameraTransform.eulerAngles.y;
-        Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
-        transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            
     }
 
     private void StartAttack() //Basic attack control

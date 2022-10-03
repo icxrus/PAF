@@ -10,7 +10,7 @@ public class SimpleGroundPointCollisionDetector : MonoBehaviour
         playerController = gameObject.GetComponentInParent(typeof(PlayerController)) as PlayerController;
     }
 
-    private void OnTriggerStay(Collision collision)
+    private void OnTriggerStay(Collider collision)
     {
         Debug.Log(collision);
         if (collision.gameObject.CompareTag("Ground"))
@@ -20,7 +20,7 @@ public class SimpleGroundPointCollisionDetector : MonoBehaviour
 
     }
 
-    private void OnTriggerExit(Collision collision)
+    private void OnTriggerExit(Collider collision)
     {
         Debug.Log(collision);
         if (collision.gameObject.CompareTag("Ground"))
