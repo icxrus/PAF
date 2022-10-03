@@ -1,2 +1,3 @@
-# PAF
- Current Game project
+# Project Angel Fire
+ 
+An action RPG game.
