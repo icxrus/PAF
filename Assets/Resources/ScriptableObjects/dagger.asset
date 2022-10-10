@@ -9,10 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f1ba2984158ae24d859a7fec3c05b75, type: 3}
-  m_Name: apple
+  m_Script: {fileID: 11500000, guid: 5274a10a63f7809409141be94ac6a933, type: 3}
+  m_Name: dagger
   m_EditorClassIdentifier: 
-  itemName: Apple
-  itemIcon: {fileID: 21300000, guid: 4aec16268bb1aac4dba899811d99e037, type: 3}
-  maxStack: 99
-  recoveryAmount: 15
+  itemName: Daggers
+  itemIcon: {fileID: 0}
+  isStackable: 0
+  valueInCoins: 1
+  weaponType: 1
+  itemLevel: 20
