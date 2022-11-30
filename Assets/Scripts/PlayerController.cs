@@ -62,7 +62,6 @@ public class PlayerController : MonoBehaviour
     int speedXAnimationParameterID;
     int speedYAnimationParameterID;
     int jumpAnimation;
-    bool inAir;
 
     [SerializeField]
     Vector2 currentAnimationBlendVector;
@@ -76,6 +75,7 @@ public class PlayerController : MonoBehaviour
         controller = GetComponent<CharacterController>();
         playerInput = GetComponent<PlayerInput>();
         cameraTransform = Camera.main.transform;
+
         moveAction = playerInput.actions["Movement"];
         jumpAction = playerInput.actions["Jump"];
         runAction = playerInput.actions["Run"];
@@ -101,14 +101,6 @@ public class PlayerController : MonoBehaviour
         groundedPlayer = true;
     }
 
-    private void StartRunBlockFunc()
-    {
-        CanRun = false;
-    }
-    private void EndRunBlockFunc()
-    {
-        CanRun = true;
-    }
 
     void Update()
     {
@@ -253,7 +245,11 @@ public class PlayerController : MonoBehaviour
             controller.Move(playerVelocity * Time.deltaTime);
 
             //groundedPlayer = controller.isGrounded;
+            if (groundedPlayer && !jumpAction.triggered)
+            {
+                controller.Move(-Vector3.up * distance);
 
+            }
 
             if (groundedPlayer)
             {
@@ -305,7 +301,7 @@ public class PlayerController : MonoBehaviour
         
         Vector3 dir = new Vector3(0, -1);
 
-        if (Physics.Raycast(transform.position, dir, out hit, distance))
+        if (Physics.Raycast(transform.position, Vector3.down, out hit, distance))
         {
             groundedPlayer = true;
         }
@@ -313,17 +309,6 @@ public class PlayerController : MonoBehaviour
         {
             groundedPlayer = false;
         }
-        Debug.DrawRay(transform.position, dir * distance, Color.red);
-    }
-
-    public void CallOnCollisionsWithGround()
-    {
-        groundedPlayer = true;
-    }
-
-    public void CallOnCollisionExitWithGround()
-    {
-        groundedPlayer = false;
     }
 
 } //Large amount of code by Samyam tutorials on YouTube - but appended for current projects needs
