@@ -8,12 +8,14 @@ using static UnityEngine.InputSystem.InputAction;
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput))]
 public class PlayerController : MonoBehaviour
 {
+    //animation controllers
     [SerializeField]
     private RuntimeAnimatorController[] animatorControllers;
     private RuntimeAnimatorController baseController;
     private RuntimeAnimatorController runController;
     private RuntimeAnimatorController crouchController;
 
+    //General required connections
     private CharacterController controller;
     private Vector3 playerVelocity;
     [SerializeField]
@@ -21,6 +23,8 @@ public class PlayerController : MonoBehaviour
     private PlayerInput playerInput;
     private Transform cameraTransform;
     private Animator animator;
+
+    //Variables for statemachine
     [SerializeField]
     bool runHoldDown = false;
     [SerializeField]
@@ -33,6 +37,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private bool autoRunning = false;
 
+    //Movement vectors
     [SerializeField]
     public float playerSpeed = 5.0f;
     [SerializeField]
@@ -52,6 +57,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private float animationPlayTransition = 0.15F;
 
+    //Input
     private InputAction moveAction;
     private InputAction jumpAction;
     private InputAction runAction;
@@ -59,6 +65,7 @@ public class PlayerController : MonoBehaviour
     private InputAction autoRunAction;
     private InputAction attackAction;
 
+    //animations
     int speedXAnimationParameterID;
     int speedYAnimationParameterID;
     int jumpAnimation;
@@ -311,4 +318,4 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-} //Large amount of code by Samyam tutorials on YouTube - but appended for current projects needs
+} //Base of code by Samyam's tutorials on YouTube - Extra functionality self-made
