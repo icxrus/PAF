@@ -157,6 +157,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "TargetingSwap",
+                    "type": "Button",
+                    "id": "23e97276-b2b7-462f-9bdf-dcc5021cde72",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -493,7 +502,7 @@
                 {
                     "name": "",
                     "id": "89cac12c-a35a-4e31-a265-1adfe11475b3",
-                    "path": "<Keyboard>/tab",
+                    "path": "<Keyboard>/i",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -597,6 +606,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Pause",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "cd9c1f8e-c376-4363-b1bb-ef543c25cca1",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TargetingSwap",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

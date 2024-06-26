@@ -23,6 +23,7 @@ public class PlayerController : MonoBehaviour
     private PlayerInput playerInput;
     private Transform cameraTransform;
     private Animator animator;
+    private SoftLockSystem softLock;
 
     //Variables for statemachine
     [SerializeField]
@@ -57,6 +58,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private float animationPlayTransition = 0.15F;
 
+    private float attackDist = 20f;
+
+    public bool isInCombat = false;
+
     //Input
     private InputAction moveAction;
     private InputAction jumpAction;
@@ -82,6 +87,8 @@ public class PlayerController : MonoBehaviour
         controller = GetComponent<CharacterController>();
         playerInput = GetComponent<PlayerInput>();
         cameraTransform = Camera.main.transform;
+
+        softLock = GameObject.FindGameObjectWithTag("SoftLock").GetComponent<SoftLockSystem>();
 
         moveAction = playerInput.actions["Movement"];
         jumpAction = playerInput.actions["Jump"];
@@ -118,6 +125,8 @@ public class PlayerController : MonoBehaviour
                 playerVelocity.y = 0f;
             }
             GroundCheck();
+
+            GameObject targetObject = softLock.ReturnCurrentTarget();
 
             runAction.performed += _ => runHoldDown = true; //Checking for holding down sprint button
             runAction.canceled += _ => runHoldDown = false;
@@ -267,6 +276,9 @@ public class PlayerController : MonoBehaviour
                 animator.SetBool("InAir", true);
             }
 
+            if (isInCombat)
+                RotateToTarget(targetObject); //Only happens in Combat
+
             // Rotate towards camera direction when moving
             if (_lastInput.sqrMagnitude == 0) return;
             float targetAngle = cameraTransform.eulerAngles.y;
@@ -279,6 +291,20 @@ public class PlayerController : MonoBehaviour
             animator.SetFloat(speedYAnimationParameterID, 0);
         }
             
+    }
+
+    private void RotateToTarget(GameObject targetObject)
+    {
+        if (targetObject != null)
+        {
+            if (Vector3.Distance(transform.position, targetObject.transform.position) < attackDist)
+            {
+                var targetDir = targetObject.transform.position - transform.position;
+                targetDir.y = 0;
+                var rotation = Quaternion.LookRotation(targetDir);
+                transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * rotationSpeed);
+            }
+        }
     }
 
     private void StartAttack() //Basic attack control

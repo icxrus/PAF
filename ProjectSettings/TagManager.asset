@@ -8,6 +8,8 @@ TagManager:
   - Enemy
   - Ground
   - Inventory
+  - SoftLock
+  - SelectionRing
   layers:
   - Default
   - TransparentFX
